@@ -50,5 +50,22 @@
       });
     }
   </script>
+
+  <script>
+    const request = window.indexedDB.open("transactionStore", 1);
+
+    request.onupgradeneeded = function() {
+      console.log("Creating indexedDB store");
+    }
+
+    request.onerror = function() {
+      console.log("Error:", request.error);
+    }
+
+    request.onsuccess = function() {
+      let db = request.result;
+      console.log(db);
+    }
+  </script>
 </body>
 </html>

@@ -42,3 +42,7 @@ self.addEventListener("activate", function(evt) {
 
     self.clients.claim();
   });
+
+  self.addEventListener('fetch', function(event) {
+    console.log(event.request.url);
+   });
