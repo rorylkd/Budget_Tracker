@@ -115,7 +115,6 @@ function sendTransaction(isAdding) {
 
   // Now the transactionData is saved to the indexedDB database when the POST request fails
 
-
   function saveRecord(transactionData) {
     const request = window.indexedDB.open("transactionDatabase", 1);
 
@@ -123,7 +122,6 @@ function sendTransaction(isAdding) {
       const db = event.target.result;
 
       const objectStore = db.createObjectStore("transactions");
-
 
       objectStore.createIndex("name", "name", { unique: false });
 
@@ -143,47 +141,36 @@ function sendTransaction(isAdding) {
 
       transactionStore.add({
         name: transactionData.name,
-        value: transactionData.value.parseInt(),
+        value: transactionData.value,
         date: transactionData.date,
       });
-
-      console.log("This is the transactionStore: ", transactionStore);
     };
   }
 
-
   //Code below runs when we go from offline to online.
 
-  window.addEventListener('online', () => {
-    
-  const request = window.indexedDB.open("transactionDatabase", 1);
-  
-    request.onsuccess = function() {
-    const db = request.result;
-    const databaseTransaction = db.transaction(["transactions"], "readwrite");
-    const transactionStore = databaseTransaction.objectStore("transactions");
-  
-    transactionStore.getAll().onsuccess = function(event) {
-      var valuesInIDB = event.target.result;
-    }
+  window.addEventListener("online", () => {
+    const request = window.indexedDB.open("transactionDatabase", 1);
 
-    fetch("/api/transaction", {
-      method: "POST",
-      body: JSON.stringify(transaction),
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json",
-      },
-    })
-    .then((response) => {
-      return response.json();
-    })
-    .catch(err => console.err)
-  
-    
-    }
-  }
-  );
+    console.log(request)
+
+    request.onsuccess = function () {
+      console.log("transaction", transaction);
+
+      fetch("/api/transaction", {
+        method: "POST",
+        body: JSON.stringify(transaction),
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .catch((err) => console.err);
+    };
+  });
 
   // also send to server
   fetch("/api/transaction", {
