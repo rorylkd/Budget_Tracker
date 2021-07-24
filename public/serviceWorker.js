@@ -13,10 +13,12 @@ const DATA_CACHE_NAME = "data-cache";
 self.addEventListener("install", function (e) {
   // Caches all transactions
   e.waitUntil(
-    caches.open(DATA_CACHE_NAME)
-    .then(function (cache) {
-      cache.add("/api/transaction");
-    }).catch(err => console.log(err))
+    caches
+      .open(DATA_CACHE_NAME)
+      .then(function (cache) {
+        cache.add("/api/transaction");
+      })
+      .catch((err) => console.log(err))
   );
 
   // Caches static assets
@@ -32,14 +34,25 @@ self.addEventListener("install", function (e) {
   self.skipWaiting();
 });
 
-self.addEventListener("activate", () => {
-  console.log("Cache is active!");
+self.addEventListener("activate", function (evt) {
+  evt.waitUntil(
+    caches.keys().then((allowedCaches) => {
+      return Promise.all(
+        allowedCaches.map((allowedCaches) => {
+          if (allowedCaches !== CACHE_NAME && allowedCaches !== DATA_CACHE_NAME) {
+            console.log("Removing old cache data", allowedCaches);
+            return caches.delete(allowedCaches);
+          }
+        })
+      );
+    })
+  );
 });
 
 self.addEventListener("fetch", function (e) {
   const url = new URL(e.request.url);
-  console.log(url);
-  if (url.pathname === ("/api/transaction")) {
+  // console.log(url);
+  if (url.pathname === "/api/transaction") {
     e.respondWith(
       caches
         .open(DATA_CACHE_NAME)

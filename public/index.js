@@ -113,10 +113,8 @@ function sendTransaction(isAdding) {
   populateTable();
   populateTotal();
 
-  // SAVE RECORD STARTS HERE
-  //
   // Now the transactionData is saved to the indexedDB database when the POST request fails
-  //
+
 
   function saveRecord(transactionData) {
     const request = window.indexedDB.open("transactionDatabase", 1);
@@ -124,16 +122,14 @@ function sendTransaction(isAdding) {
     request.onupgradeneeded = function (event) {
       const db = event.target.result;
 
-      const objectStore = db.createObjectStore("transactions", {
-        keyPath: "id",
-        autoIncrement: true,
-      });
+      const objectStore = db.createObjectStore("transactions");
 
-      objectStore.createIndex("date", "date", { unique: true });
 
       objectStore.createIndex("name", "name", { unique: false });
 
       objectStore.createIndex("value", "value", { unique: false });
+
+      objectStore.createIndex("date", "date", { unique: true });
     };
 
     request.onerror = function () {
@@ -146,20 +142,48 @@ function sendTransaction(isAdding) {
       const transactionStore = databaseTransaction.objectStore("transactions");
 
       transactionStore.add({
-        date: transactionData.date,
         name: transactionData.name,
-        value: transactionData.value,
+        value: transactionData.value.parseInt(),
+        date: transactionData.date,
       });
 
-      console.log(transactionStore);
+      console.log("This is the transactionStore: ", transactionStore);
     };
   }
 
-  //
-  //
-  //
-  //
-  //
+
+  //Code below runs when we go from offline to online.
+
+  window.addEventListener('online', () => {
+    
+  const request = window.indexedDB.open("transactionDatabase", 1);
+  
+    request.onsuccess = function() {
+    const db = request.result;
+    const databaseTransaction = db.transaction(["transactions"], "readwrite");
+    const transactionStore = databaseTransaction.objectStore("transactions");
+  
+    transactionStore.getAll().onsuccess = function(event) {
+      var valuesInIDB = event.target.result;
+    }
+
+    fetch("/api/transaction", {
+      method: "POST",
+      body: JSON.stringify(transaction),
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .catch(err => console.err)
+  
+    
+    }
+  }
+  );
 
   // also send to server
   fetch("/api/transaction", {
@@ -185,7 +209,6 @@ function sendTransaction(isAdding) {
     .catch((err) => {
       // fetch failed, so save in indexed db
       saveRecord(transaction);
-      console.log("transaction:", transaction);
 
       // clear form
       nameEl.value = "";
@@ -200,19 +223,3 @@ document.querySelector("#add-btn").onclick = function () {
 document.querySelector("#sub-btn").onclick = function () {
   sendTransaction(false);
 };
-
-// window.addEventListener("online", () => {
-//   const request = indexedDB.open("transactionDatabase", 1);
-  
-
-//   request.onsuccess = function () {
-//     const db = request.result;
-//     const databaseTransaction = db.transaction(["transactions"], "readwrite");
-//     const transactionStore = databaseTransaction.objectStore("transactions");
-
-//     var getValues = transactionStore.getAll();
-//     console.log(getValues);
-//   };
-
-//   // Need to grab the values from transactionDatabase and send them to the server
-// });
