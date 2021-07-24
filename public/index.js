@@ -125,10 +125,11 @@ function sendTransaction(isAdding) {
       const db = event.target.result;
 
       const objectStore = db.createObjectStore("transactions", {
-        keyPath: "id", autoIncrement: true
+        keyPath: "id",
+        autoIncrement: true,
       });
 
-      objectStore.createIndex("date", "date", {unique: true});
+      objectStore.createIndex("date", "date", { unique: true });
 
       objectStore.createIndex("name", "name", { unique: false });
 
@@ -143,8 +144,6 @@ function sendTransaction(isAdding) {
       const db = request.result;
       const databaseTransaction = db.transaction(["transactions"], "readwrite");
       const transactionStore = databaseTransaction.objectStore("transactions");
-
-
 
       transactionStore.add({
         date: transactionData.date,
@@ -201,3 +200,19 @@ document.querySelector("#add-btn").onclick = function () {
 document.querySelector("#sub-btn").onclick = function () {
   sendTransaction(false);
 };
+
+// window.addEventListener("online", () => {
+//   const request = indexedDB.open("transactionDatabase", 1);
+  
+
+//   request.onsuccess = function () {
+//     const db = request.result;
+//     const databaseTransaction = db.transaction(["transactions"], "readwrite");
+//     const transactionStore = databaseTransaction.objectStore("transactions");
+
+//     var getValues = transactionStore.getAll();
+//     console.log(getValues);
+//   };
+
+//   // Need to grab the values from transactionDatabase and send them to the server
+// });
