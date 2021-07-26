@@ -52,37 +52,7 @@
     }
   </script>
 
-  <!-- <script>
-    const request = window.indexedDB.open("transactionDatabase", 1);
-
-    request.onupgradeneeded = function() {
-      const db = event.target.result;
-
-      const objectStore = db.createObjectStore("transactions", {
-        keyPath: "date"
-      });
-      
-      objectStore.createIndex("name", "name", {unique: false});
-
-      objectStore.createIndex("value", "value", {unique:false});
-
-      objectStore.transaction.oncomplete = function(e) {
-        var transactionObjectStore = db.transaction("transactions", "readwrite").objectStore("transactions");
-      // This is where I want to take the data given to me and add it to the database
-      }
-      
       
   
-    }
-
-    request.onerror = function() {
-      console.log("Error:", request.error);
-    }
-
-    request.onsuccess = function() {
-      let db = request.result;
-      console.log(db);
-    }
-  </script> -->
 </body>
 </html>

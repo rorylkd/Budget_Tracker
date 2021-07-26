@@ -118,24 +118,24 @@ function sendTransaction(isAdding) {
   function saveRecord(transactionData) {
     const request = window.indexedDB.open("transactionDatabase", 1);
 
-    request.onupgradeneeded = function (event) {
-      const db = event.target.result;
-
-      const objectStore = db.createObjectStore("transactions");
-
-      objectStore.createIndex("name", "name", { unique: false });
-
-      objectStore.createIndex("value", "value", { unique: false });
-
-      objectStore.createIndex("date", "date", { unique: true });
-    };
-
     request.onerror = function () {
       console.log("Error:", request.error);
     };
 
     request.onsuccess = function () {
       const db = request.result;
+
+      const objectStore = db.createObjectStore("transactions", {
+        keyPath: "id",
+        autoIncrement: true,
+      });
+
+      objectStore.createIndex("name", "name", { unique: false });
+
+      objectStore.createIndex("value", "value", { unique: false });
+
+      objectStore.createIndex("date", "date", { unique: true });
+
       const databaseTransaction = db.transaction(["transactions"], "readwrite");
       const transactionStore = databaseTransaction.objectStore("transactions");
 
@@ -150,25 +150,32 @@ function sendTransaction(isAdding) {
   //Code below runs when we go from offline to online.
 
   window.addEventListener("online", () => {
+    console.log("Am i online?");
     const request = window.indexedDB.open("transactionDatabase", 1);
 
-    console.log(request)
-
     request.onsuccess = function () {
-      console.log("transaction", transaction);
+      const db = request.result;
+      const databaseTransaction = db.transaction(["transactions"], "readwrite");
+      const transactionStore = databaseTransaction.objectStore("transactions");
 
-      fetch("/api/transaction", {
-        method: "POST",
-        body: JSON.stringify(transaction),
-        headers: {
-          Accept: "application/json, text/plain, */*",
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => {
-          return response.json();
+      transactionStore.getAll().onsuccess = function (event) {
+        var valuesInIDB = event.target.result;
+
+        const newValuesArray = transactions.filter(({ date: date1 }) => !valuesInIDB.some(({ date: date2 }) => date2 === date1));
+
+        fetch("/api/transaction", {
+          method: "POST",
+          body: JSON.stringify(newValuesArray),
+          headers: {
+            Accept: "application/json, text/plain, */*",
+            "Content-Type": "application/json",
+          },
         })
-        .catch((err) => console.err);
+          .then((response) => {
+            return response.json();
+          })
+          .catch((err) => console.err);
+      };
     };
   });
 
